@@ -226,6 +226,7 @@ body{margin:0;height:100%;display:flex;align-items:center;justify-content:center
 .editable-item{border:0;overflow:visible;pointer-events:auto;background:none}
 .editable-item>img,.editable-item>video,.editable-item>iframe,.editable-item>audio,.editable-item>.file-fallback{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;background:none;border:0}
 .editable-item .embed-fallback,.editable-item .item-grab{display:none!important}
+.editable-item>img,.editable-item>video,.editable-item>iframe,.editable-item>audio,.editable-item>.file-fallback{filter:drop-shadow(3px 3px 0 #000)}
 .editable-item .text-content{height:auto;overflow:visible;padding:0}
 .editing .editable-item.selected .text-content{cursor:move}
 .editable-item.selected{z-index:2}
@@ -284,7 +285,8 @@ body{margin:0;height:100%;display:flex;align-items:center;justify-content:center
     <button class="edb" id="editTextItem" disabled>edit selected text</button>
     <button class="edb" id="deleteItem" disabled>delete selected</button>
     <button class="edb" id="bannerOptions">banner options</button>
-    <button class="edb" id="exportSite">export site for GitHub</button>
+    <button class="edb" id="publishGH">publish to GitHub (sync everywhere)</button>
+    <button class="edb" id="exportSite">download index.html (manual)</button>
     <div class="banner-options" id="bannerOptionsPanel" hidden>
       <input id="eurl" placeholder="paste banner image link" spellcheck="false">
       <span id="ero"></span>
@@ -293,6 +295,7 @@ body{margin:0;height:100%;display:flex;align-items:center;justify-content:center
     </div>
   </div>
 </main>
+<script id="site-data" type="application/json">{}</script>
 <script>
 const pages=["home","folder 1","folder 2","folder 3","folder 4"];
 const icons={
@@ -328,14 +331,20 @@ function bgTile(){
 
 const $=id=>document.getElementById(id);
 let BN={src:"https://i.ibb.co/YFbF50qY/thugs.png",x:0,y:1.5,w:81,h:24},editing=false;
-if(window.__PUBLISHED_BANNER)BN={...BN,...window.__PUBLISHED_BANNER};
-try{const sv=JSON.parse(localStorage.getItem("y2kBanner")||"null");if(sv&&typeof sv==="object")BN={...BN,...sv}}catch(e){}
+const SD=(()=>{try{return JSON.parse($("site-data").textContent)||{}}catch(e){return{}}})();
+const PUB={rev:+SD.rev||0,items:Array.isArray(SD.items)?SD.items:(Array.isArray(window.__PUBLISHED_ITEMS)?window.__PUBLISHED_ITEMS:[]),banner:SD.banner||window.__PUBLISHED_BANNER||null};
+let useDraft=false,baseRev=0;
+try{baseRev=+localStorage.getItem("y2kBaseRev")||0;const has=localStorage.getItem("y2kMediaItems")!==null||localStorage.getItem("y2kBanner")!==null;
+  useDraft=has&&baseRev>=PUB.rev;
+  if(!useDraft){["y2kMediaItems","y2kBanner","y2kState"].forEach(k=>localStorage.removeItem(k));baseRev=PUB.rev;localStorage.setItem("y2kBaseRev",String(baseRev))}}catch(e){baseRev=PUB.rev}
+if(PUB.banner)BN={...BN,...PUB.banner};
+if(useDraft)try{const sv=JSON.parse(localStorage.getItem("y2kBanner")||"null");if(sv&&typeof sv==="object")BN={...BN,...sv}}catch(e){}
 const saveBN=()=>{try{localStorage.setItem("y2kBanner",JSON.stringify(BN))}catch(e){}};
 const bnStyle=()=>`left:calc(var(--u)*${BN.x});top:calc(var(--u)*${BN.y});width:calc(var(--u)*${BN.w});height:calc(var(--u)*${BN.h})`;
 {const pre=new Image();pre.referrerPolicy="no-referrer";pre.src=BN.src;}
 
-let mediaItems=Array.isArray(window.__PUBLISHED_ITEMS)?window.__PUBLISHED_ITEMS:[];
-try{const s=localStorage.getItem("y2kMediaItems");if(s)mediaItems=JSON.parse(s)}catch(e){}
+let mediaItems=JSON.parse(JSON.stringify(PUB.items));
+if(useDraft)try{const s=localStorage.getItem("y2kMediaItems");if(s)mediaItems=JSON.parse(s)}catch(e){}
 let selectedItem=null,historyStack=[],redoStack=[],dbPromise=null,objectUrls=[],snapGrid=false,editingTextId=null;
 try{snapGrid=localStorage.getItem("y2kSnapGrid")==="1"}catch(e){}
 const persistItems=()=>{try{localStorage.setItem("y2kMediaItems",JSON.stringify(mediaItems));localStorage.setItem("y2kState",JSON.stringify({page:cur,editing,hist:historyStack.slice(-30),redo:redoStack.slice(-30)}))}catch(e){}};
@@ -549,20 +558,44 @@ $("eurl").addEventListener("change",e=>{const v=e.target.value.trim();if(/^https
 $("ecp").addEventListener("click",()=>{const t=`banner x=${BN.x} y=${BN.y} w=${BN.w} h=${BN.h} src=${BN.src}`;navigator.clipboard?.writeText(t).then(()=>$("ecp").textContent="copied").catch(()=>{});});
 $("ers").addEventListener("click",()=>{snapshot();BN={src:BN.src,x:0,y:1.5,w:81,h:24};saveBN();const b=$("bn");if(b)b.style.cssText=bnStyle()});
 async function blobDataURL(blob){return await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.readAsDataURL(blob)})}
+async function buildDoc(){
+  const published=[];
+  for(const item of mediaItems){const copy={...item};if(item.kind==="upload"&&!item.src){const blob=await getAsset(item.id);if(!blob)continue;copy.src=await blobDataURL(blob)}published.push(copy)}
+  const rev=Date.now(),html=document.documentElement.cloneNode(true);
+  html.querySelector("#editTools").hidden=true;html.querySelector("#ed").hidden=false;html.querySelector("#moreMenu").hidden=true;html.querySelector("#stage").innerHTML="";html.querySelector("#tabs").innerHTML="";html.querySelectorAll(".spark").forEach(x=>x.remove());
+  html.querySelector("#site-data").textContent=JSON.stringify({rev,items:published,banner:BN}).replace(/</g,"\\u003c");
+  return{doc:"<!DOCTYPE html>\n"+html.outerHTML,rev};
+}
+const markPublished=rev=>{baseRev=rev;try{localStorage.setItem("y2kBaseRev",String(rev))}catch(e){}};
+const flash=(id,t,orig)=>{$(id).textContent=t;setTimeout(()=>$(id).textContent=orig,2200)};
 $("exportSite").addEventListener("click",async()=>{
+  try{const{doc,rev}=await buildDoc();persistItems();markPublished(rev);
+    const url=URL.createObjectURL(new Blob([doc],{type:"text/html"})),a=document.createElement("a");a.href=url;a.download="index.html";a.click();URL.revokeObjectURL(url);
+    flash("exportSite","downloaded ✓","download index.html (manual)")}
+  catch(err){alert("Export failed. Uploaded files may be too large for a single HTML file.")}
+});
+$("publishGH").addEventListener("click",async()=>{
+  const lbl="publish to GitHub (sync everywhere)";
+  let g={};try{g=JSON.parse(localStorage.getItem("y2kGH")||"{}")}catch(e){}
+  const repo=prompt("GitHub repo (owner/name):",g.repo||"");if(!repo)return;
+  const token=prompt("GitHub token (fine-grained, Contents: read & write for this repo). Saved only in this browser:",g.token||"");if(!token)return;
+  try{localStorage.setItem("y2kGH",JSON.stringify({repo,token}))}catch(e){}
+  const api="https://api.github.com/repos/"+repo.trim()+"/contents/index.html",H={Authorization:"Bearer "+token.trim(),Accept:"application/vnd.github+json"};
+  $("publishGH").textContent="publishing…";
   try{
-    const published=[];
-    for(const item of mediaItems){
-      const copy={...item};
-      if(item.kind==="upload"&&!item.src){const blob=await getAsset(item.id);if(!blob)continue;copy.src=await blobDataURL(blob)}
-      published.push(copy);
-    }
-    const html=document.documentElement.cloneNode(true);
-    html.querySelector("#editTools").hidden=true;html.querySelector("#ed").hidden=false;html.querySelector("#moreMenu").hidden=true;html.querySelector("#stage").innerHTML="";html.querySelector("#tabs").innerHTML="";html.querySelectorAll(".spark").forEach(x=>x.remove());
-    const doc="<!DOCTYPE html>\n"+html.outerHTML.replace("<script>","<script>window.__PUBLISHED_ITEMS="+JSON.stringify(published).replace(/</g,"\\u003c")+";window.__PUBLISHED_BANNER="+JSON.stringify(BN).replace(/</g,"\\u003c")+";</"+ "script><script>");
-    const blob=new Blob([doc],{type:"text/html"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="index.html";a.click();URL.revokeObjectURL(url);
-    $("exportSite").textContent="exported ✓";setTimeout(()=>$("exportSite").textContent="export site for GitHub",1600);
-  }catch(err){alert("Export failed. Please try again; uploaded files may be too large for a single HTML file.")}
+    persistItems();
+    let sha;const m=await fetch(api,{headers:H,cache:"no-store"});
+    if(m.ok){sha=(await m.json()).sha;
+      const raw=await fetch(api,{headers:{...H,Accept:"application/vnd.github.raw"},cache:"no-store"});
+      const mm=raw.ok?(await raw.text()).match(/<script id="site-data" type="application\/json">\{"rev":(\d+)/):null;
+      if(mm&&+mm[1]>baseRev&&!confirm("GitHub has newer changes than what you loaded (from another device?). Overwrite them with this version?")){$("publishGH").textContent=lbl;return}
+    }else if(m.status!==404)throw new Error("GitHub "+m.status+" – check repo name/token");
+    const{doc,rev}=await buildDoc();
+    const b64=(await blobDataURL(new Blob([doc],{type:"text/html"}))).split(",")[1];
+    const r=await fetch(api,{method:"PUT",headers:H,body:JSON.stringify({message:"update site "+new Date().toISOString(),content:b64,...(sha?{sha}:{})})});
+    if(!r.ok)throw new Error("GitHub "+r.status+" – "+((await r.json().catch(()=>({}))).message||""));
+    markPublished(rev);flash("publishGH","published ✓ (live in ~1 min)",lbl);
+  }catch(err){alert("Publish failed: "+err.message);$("publishGH").textContent=lbl}
 });
 document.addEventListener("click",e=>{if(!e.target.closest("#moreMenu,#moreItem")){$("moreMenu").hidden=true;$("moreItem").setAttribute("aria-expanded","false")}});
 
