@@ -164,6 +164,8 @@ body{margin:0;position:fixed;inset:0;width:100%;height:100%;display:flex;align-i
 .editing .editable-item .shield{display:block}
 .editable-item .item-resize{display:none;position:absolute;right:-9px;bottom:-9px;z-index:6;width:22px;height:22px;background:var(--tab2);border:2px solid var(--deep);cursor:nwse-resize;touch-action:none}
 .editing .editable-item.selected .item-resize{display:block}
+.item-lock{all:unset;display:none;position:absolute;left:5px;bottom:5px;z-index:6;cursor:pointer;padding:1px 7px;font:600 11px "Pixelify Sans",monospace;background:var(--panel);color:var(--tab2);border:2px solid var(--line);box-shadow:2px 2px 0 #000;white-space:nowrap}
+.editing .editable-item.selected .item-lock{display:block}
 .editable-item .text-content{position:relative;width:100%;height:auto;min-height:1em;overflow:visible;padding:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.12}
 .editing .editable-item.selected .text-content{cursor:move}
 .add-modal{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:18px;background:#020906d9;backdrop-filter:blur(5px)}
@@ -207,8 +209,8 @@ body{margin:0;position:fixed;inset:0;width:100%;height:100%;display:flex;align-i
   <section class="add-modal" id="addModal" role="dialog" aria-modal="true" aria-labelledby="addTitle" hidden="">
     <div class="add-card">
       <div class="add-head"><strong id="addTitle">ADD</strong><button class="edb" id="closeAdd" aria-label="Close">✕</button></div>
-      <div class="add-tabs" id="addTabs"><button class="edb" data-tab="text">Text</button><button class="edb on" data-tab="media">Media / file</button></div>
-      <div id="secText" class="add-sec" hidden="">
+      <div class="add-tabs" id="addTabs"><button class="edb on" data-tab="text">Text</button><button class="edb" data-tab="media">Media / file</button></div>
+      <div id="secText" class="add-sec">
         <textarea id="contentText" placeholder="Write something for your page…"></textarea>
         <div class="text-settings">
           <label>Font
@@ -219,19 +221,19 @@ body{margin:0;position:fixed;inset:0;width:100%;height:100%;display:flex;align-i
         </div>
         <button class="edb" id="saveText">＋ add text</button>
       </div>
-      <div id="secMedia" class="add-sec">
+      <div id="secMedia" class="add-sec" hidden="">
         <label class="lbl">Paste a link: image, GIF, video, audio (mp3), PDF, YouTube, Spotify…<input id="mediaUrl" type="url" placeholder="https://…/file.gif  ·  song.mp3  ·  clip.mp4"></label>
         <button class="edb" id="saveMedia">＋ add from link</button>
         <label class="lbl">…or upload from this device (stored inside the HTML, max 8 MB)<input id="mediaFile" type="file" accept="image/*,audio/*,video/*,application/pdf"></label>
       </div>
-      <p class="add-note" id="addNote" aria-live="polite">Paste a full link starting with https://</p>
+      <p class="add-note" id="addNote" aria-live="polite"></p>
     </div>
   </section>
 </main>
 <script>
 (function(){var r=document.documentElement;function f(){var w=window.innerWidth,h=window.innerHeight,s=Math.min(1,w*.96/780,h*.88/624);r.style.setProperty("--s",s.toFixed(4))}f();addEventListener("resize",f);addEventListener("orientationchange",f)})();
 </script>
-<script id="site-data" type="application/json">{"rev":1794647182543,"items":[{"id":"t1794646964355llgac","page":"home","kind":"text","text":"handle now changes only the width of the text box, so more or less text fits on each line. In my test, squeezing the box made the text wrap into more lines and stretching it brought them back to fewer. The font size stayed at 24 throughout.\n\nHandle position: on text boxes th","fontSize":12,"color":"#d6f5de","font":"pixel","x":34.57112830567175,"y":14.757913625296073,"w":63.77035173288472},{"id":"t1794647022263oea0j","page":"home","kind":"text","text":"hello...test file \u003c3","fontSize":24,"color":"#d6f5de","font":"basic","x":13.091269919611415,"y":28.827630398418997,"w":34},{"id":"m1794647081487glnib","page":"home","kind":"embed","src":"https://i.ibb.co/zVVPXpBW/Screenshot-20250921-010139.jpg","ar":0.4611,"w":20.781165215687935,"x":72.757575159331,"y":19.78037252081689,"h":41.263344286782214}]}</script>
+<script id="site-data" type="application/json">{"rev":1794647578012,"items":[{"id":"m1794647469073r8c80","page":"home","kind":"embed","src":"https://i.ibb.co/zVVPXpBW/Screenshot-20250921-010139.jpg","ar":0.4723,"w":22.288549423138445,"x":74.8930065706614,"y":12.911042423950818,"lock":true},{"id":"t179464756406663vyh","page":"home","kind":"text","text":"helooooooooooooooooooo","fontSize":24,"color":"#d6f5de","font":"pixel","x":6.684994852684817,"y":15.254493758643118,"w":34},{"id":"t1794647572480kb5ux","page":"home","kind":"text","text":"testttttttttttttttttttttt","fontSize":24,"color":"#d6f5de","font":"basic","x":2.916596627018315,"y":35.696962073864775,"w":34}]}</script>
 <script>
 const pages=["home","folder 1","folder 2","folder 3","folder 4"];
 const icons={
@@ -341,19 +343,29 @@ async function renderMedia(){
     }else el.innerHTML=mediaMarkup(item);
     const shield=document.createElement("i");shield.className="shield";el.appendChild(shield);
     const resize=document.createElement("i");resize.className="item-resize";el.appendChild(resize);
+    if(item.kind!=="text"){const lk=document.createElement("button");lk.className="item-lock";lk.type="button";lk.textContent=item.lock===false?"↔ stretch":"🔒 ratio";lk.title="tap to switch: keep proportions / free stretch";el.appendChild(lk)}
     layer.appendChild(el);
   }
   tb();
+}
+function toggleLock(id){
+  const item=mediaItems.find(x=>x.id===id),el=document.querySelector(`[data-id="${id}"]`);if(!item||!el)return;
+  snap();const r=el.getBoundingClientRect(),L=activeLayer().getBoundingClientRect();
+  if(item.lock===false){item.lock=true;item.ar=+(r.width/r.height).toFixed(4);delete item.h}
+  else{item.lock=false;item.h=+(r.height/L.height*100).toFixed(2)}
+  changed();refreshMedia();
 }
 function wireMedia(){
   const layer=activeLayer();if(!layer||layer.dataset.wired==="1")return;layer.dataset.wired="1";let drag=null;
   layer.addEventListener("pointerdown",e=>{
     if(!editing)return;const el=e.target.closest(".editable-item");if(!el)return;
+    if(e.target.classList.contains("item-lock")){e.preventDefault();toggleLock(el.dataset.id);return}
     e.preventDefault();selectedItem=el.dataset.id;tb();
     const item=mediaItems.find(x=>x.id===selectedItem);if(!item)return;
     const rect=layer.getBoundingClientRect();
     const box=el.getBoundingClientRect(),orig={...item};
     if(item.kind!=="text"&&!Number.isFinite(Number(orig.h)))orig.h=box.height/rect.height*100;
+    if(item.kind!=="text"&&item.lock!==false&&Number.isFinite(Number(item.h))){item.ar=+(box.width/box.height).toFixed(4);delete item.h}
     drag={id:item.id,x:e.clientX,y:e.clientY,resize:e.target.classList.contains("item-resize"),orig,rect,eh:box.height,moved:false};
     el.setPointerCapture(e.pointerId);
   });
@@ -363,8 +375,9 @@ function wireMedia(){
     if(!drag.moved){if(Math.abs(dx)+Math.abs(dy)<3)return;drag.moved=true;snap()}
     if(drag.resize){
       let w=Math.max(3,Math.min(100-drag.orig.x,drag.orig.w+dx/R.width*100));
+      if(item.kind!=="text"&&item.lock!==false){const ar=Number(item.ar)||1.6;w=Math.min(w,(100-drag.orig.y)*ar*R.height/R.width)}
       item.w=w;
-      if(item.kind!=="text")item.h=Math.max(5,Math.min(100-drag.orig.y,drag.orig.h+dy/R.height*100));
+      if(item.kind!=="text"){if(item.lock===false)item.h=Math.max(5,Math.min(100-drag.orig.y,drag.orig.h+dy/R.height*100));else delete item.h}
     }else{
       item.x=Math.max(0,Math.min(100-item.w,drag.orig.x+dx/R.width*100));
       item.y=Math.max(0,Math.min(100-drag.eh/R.height*100,drag.orig.y+dy/R.height*100));
