@@ -164,6 +164,7 @@ body{margin:0;position:fixed;inset:0;width:100%;height:100%;display:flex;align-i
 .editing .editable-item .shield{display:block}
 .editable-item .item-resize{display:none;position:absolute;right:-9px;bottom:-9px;z-index:6;width:22px;height:22px;background:var(--tab2);border:2px solid var(--deep);cursor:nwse-resize;touch-action:none}
 .editing .editable-item.selected .item-resize{display:block}
+.editable-item.stretch>img,.editable-item.stretch>video{object-fit:fill}
 .item-lock{all:unset;display:none;position:absolute;left:5px;bottom:5px;z-index:6;cursor:pointer;padding:1px 7px;font:600 11px "Pixelify Sans",monospace;background:var(--panel);color:var(--tab2);border:2px solid var(--line);box-shadow:2px 2px 0 #000;white-space:nowrap}
 .editing .editable-item.selected .item-lock{display:block}
 .editable-item .text-content{position:relative;width:100%;height:auto;min-height:1em;overflow:visible;padding:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.12}
@@ -222,7 +223,7 @@ body{margin:0;position:fixed;inset:0;width:100%;height:100%;display:flex;align-i
         <button class="edb" id="saveText">＋ add text</button>
       </div>
       <div id="secMedia" class="add-sec" hidden="">
-        <label class="lbl">Paste a link: image, GIF, video, audio (mp3), PDF, YouTube, Spotify…<input id="mediaUrl" type="url" placeholder="https://…/file.gif  ·  song.mp3  ·  clip.mp4"></label>
+        <label class="lbl">Paste any link – Google Drive, YouTube, image, GIF, video, mp3, PDF, any website<input id="mediaUrl" type="text" placeholder="https://…"></label>
         <button class="edb" id="saveMedia">＋ add from link</button>
         <label class="lbl">…or upload from this device (stored inside the HTML, max 8 MB)<input id="mediaFile" type="file" accept="image/*,audio/*,video/*,application/pdf"></label>
       </div>
@@ -233,7 +234,7 @@ body{margin:0;position:fixed;inset:0;width:100%;height:100%;display:flex;align-i
 <script>
 (function(){var r=document.documentElement;function f(){var w=window.innerWidth,h=window.innerHeight,s=Math.min(1,w*.96/780,h*.88/624);r.style.setProperty("--s",s.toFixed(4))}f();addEventListener("resize",f);addEventListener("orientationchange",f)})();
 </script>
-<script id="site-data" type="application/json">{"rev":1794647578012,"items":[{"id":"m1794647469073r8c80","page":"home","kind":"embed","src":"https://i.ibb.co/zVVPXpBW/Screenshot-20250921-010139.jpg","ar":0.4723,"w":22.288549423138445,"x":74.8930065706614,"y":12.911042423950818,"lock":true},{"id":"t179464756406663vyh","page":"home","kind":"text","text":"helooooooooooooooooooo","fontSize":24,"color":"#d6f5de","font":"pixel","x":6.684994852684817,"y":15.254493758643118,"w":34},{"id":"t1794647572480kb5ux","page":"home","kind":"text","text":"testttttttttttttttttttttt","fontSize":24,"color":"#d6f5de","font":"basic","x":2.916596627018315,"y":35.696962073864775,"w":34}]}</script>
+<script id="site-data" type="application/json">{"rev":1794648367150,"items":[{"id":"m1794648220220lvv6t","page":"home","kind":"embed","src":"https://drive.google.com/file/d/1_GjT_y7_-H7Tm-1s1qQZuxsXZA7wl1Xy/view?usp=sharing","ar":1.6,"w":50,"x":46.00194392368595,"y":14.041054185632513},{"id":"m1794648285042wjgci","page":"home","kind":"embed","src":"https://i.ibb.co/YFbF50qY/thugs.png","ar":3.5815,"w":60.97741295613061,"x":0,"y":32.9938136724072,"lock":false,"h":19.21801865325556},{"id":"t1794648348627kwp7p","page":"home","kind":"text","text":"hello this is a test text test text test","fontSize":24,"color":"#d6f5de","font":"pixel","x":3.9215018621761573,"y":9.792132813361807,"w":7.99805607631405}]}</script>
 <script>
 const pages=["home","folder 1","folder 2","folder 3","folder 4"];
 const icons={
@@ -304,15 +305,25 @@ function mediaTag(type){
   return "file";
 }
 function embedInfo(u){
-  const s=String(u||"").trim();let m;
-  if(/^data:image\//i.test(s)||/\.(png|jpe?g|gif|webp|avif|bmp|svg)(\?|#|$)/i.test(s)||/^https?:\/\/i\.ibb\.co\//i.test(s))return{t:"img",src:s};
+  let s=String(u||"").trim(),m;const F=(src,ar)=>({t:"frame",src,ar});
+  if(/^data:image\//i.test(s))return{t:"img",src:s};
+  if(m=s.match(/drive\.google\.com\/file\/d\/([\w-]+)/i)||s.match(/drive\.google\.com\/(?:open|uc)\?(?:[^#]*&)?id=([\w-]+)/i))return F("https://drive.google.com/file/d/"+m[1]+"/preview",1.6);
+  if(m=s.match(/drive\.google\.com\/drive\/(?:u\/\d+\/)?folders\/([\w-]+)/i))return F("https://drive.google.com/embeddedfolderview?id="+m[1]+"#grid",1.2);
+  if(m=s.match(/docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([\w-]+)/i))return F("https://docs.google.com/"+m[1]+"/d/"+m[2]+(m[1]==="presentation"?"/embed":"/preview"),m[1]==="document"?.75:1.6);
+  if(/^https?:\/\/(www\.)?dropbox\.com\//i.test(s)){s=s.replace(/([?&])dl=0/,"$1raw=1");if(!/[?&]raw=1/.test(s))s+=(s.includes("?")?"&":"?")+"raw=1"}
+  if(m=s.match(/^https?:\/\/(?:www\.)?imgur\.com\/([A-Za-z0-9]{5,8})$/i))return{t:"img",src:"https://i.imgur.com/"+m[1]+".jpg"};
+  if(m=s.match(/giphy\.com\/gifs\/(?:[^/?#]*-)?([A-Za-z0-9]+)(?:[/?#]|$)/i))return{t:"img",src:"https://media.giphy.com/media/"+m[1]+"/giphy.gif"};
+  if(/\.(png|jpe?g|gif|webp|avif|bmp|svg)(\?|#|$)/i.test(s)||/^https?:\/\/i\.ibb\.co\//i.test(s))return{t:"img",src:s};
   if(/^data:audio\//i.test(s)||/\.(mp3|wav|ogg|oga|m4a|aac|flac|opus)(\?|#|$)/i.test(s))return{t:"audio",src:s};
   if(/^data:video\//i.test(s)||/\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(s))return{t:"video",src:s};
-  if(m=s.match(/(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/|youtube\.com\/shorts\/)([\w-]{11})/i))return{t:"frame",src:"https://www.youtube.com/embed/"+m[1]};
-  if(m=s.match(/vimeo\.com\/(\d+)/i))return{t:"frame",src:"https://player.vimeo.com/video/"+m[1]};
-  if(m=s.match(/open\.spotify\.com\/(track|album|playlist|episode|show)\/([\w]+)/i))return{t:"frame",src:"https://open.spotify.com/embed/"+m[1]+"/"+m[2]};
-  if(/soundcloud\.com\//i.test(s)&&!/w\.soundcloud\.com/i.test(s))return{t:"frame",src:"https://w.soundcloud.com/player/?url="+encodeURIComponent(s)};
-  return{t:"frame",src:s};
+  if(m=s.match(/youtube\.com\/playlist\?(?:.*&)?list=([\w-]+)/i))return F("https://www.youtube.com/embed/videoseries?list="+m[1],1.78);
+  if(m=s.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|live\/|embed\/)|youtu\.be\/)([\w-]{11})/i))return F("https://www.youtube.com/embed/"+m[1],/shorts\//i.test(s)?.56:1.78);
+  if(m=s.match(/vimeo\.com\/(?:video\/)?(\d+)/i))return F("https://player.vimeo.com/video/"+m[1],1.78);
+  if(m=s.match(/open\.spotify\.com\/(track|album|playlist|episode|show)\/(\w+)/i))return F("https://open.spotify.com/embed/"+m[1]+"/"+m[2],m[1]==="track"?2.3:1.1);
+  if(/soundcloud\.com\//i.test(s)&&!/w\.soundcloud\.com/i.test(s))return F("https://w.soundcloud.com/player/?url="+encodeURIComponent(s),2.6);
+  if(m=s.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/i))return F("https://www.tiktok.com/embed/v2/"+m[1],.56);
+  if(m=s.match(/instagram\.com\/(p|reel|tv)\/([\w-]+)/i))return F("https://www.instagram.com/"+(m[1]==="reel"?"reel":"p")+"/"+m[2]+"/embed",.8);
+  return F(s,/\.pdf(\?|#|$)/i.test(s)?.75:1.6);
 }
 function mediaMarkup(item){
   const src=escAttr(item.src||"");
@@ -343,7 +354,7 @@ async function renderMedia(){
     }else el.innerHTML=mediaMarkup(item);
     const shield=document.createElement("i");shield.className="shield";el.appendChild(shield);
     const resize=document.createElement("i");resize.className="item-resize";el.appendChild(resize);
-    if(item.kind!=="text"){const lk=document.createElement("button");lk.className="item-lock";lk.type="button";lk.textContent=item.lock===false?"↔ stretch":"🔒 ratio";lk.title="tap to switch: keep proportions / free stretch";el.appendChild(lk)}
+    if(item.kind!=="text"){if(item.lock===false)el.classList.add("stretch");const lk=document.createElement("button");lk.className="item-lock";lk.type="button";lk.textContent=item.lock===false?"↔ stretch":"🔒 ratio";lk.title="tap to switch: keep proportions / free stretch";el.appendChild(lk)}
     layer.appendChild(el);
   }
   tb();
@@ -426,12 +437,12 @@ function addEmbed(src,ar,t){
   selectedItem=id;editing=true;editOpen=true;$("mediaUrl").value="";closeAddWindow();changed();refreshMedia();
 }
 $("saveMedia").addEventListener("click",()=>{
-  const url=$("mediaUrl").value.trim();if(!/^https?:\/\//i.test(url)){$("addNote").textContent="Paste a full link starting with https://";return}
+  let url=$("mediaUrl").value.trim();if(!/^https?:\/\//i.test(url)&&/^[\w-]+(\.[\w-]+)+\/\S*/.test(url))url="https://"+url;if(!/^https?:\/\//i.test(url)){$("addNote").textContent="Paste a full link starting with https://";return}
   const info=embedInfo(url);
   if(info.t==="img"){const im=new Image();im.referrerPolicy="no-referrer";im.onload=()=>addEmbed(url,im.naturalWidth/im.naturalHeight,"img");im.onerror=()=>{$("addNote").textContent="Couldn’t load that image link. Use the direct image address."};im.src=info.src}
   else if(info.t==="video"){const v=document.createElement("video");v.preload="metadata";v.onloadedmetadata=()=>addEmbed(url,v.videoWidth/v.videoHeight,"video");v.onerror=()=>addEmbed(url,1.78,"video");v.src=info.src}
   else if(info.t==="audio")addEmbed(url,5,"audio");
-  else addEmbed(url,/spotify|soundcloud/i.test(info.src)?2.6:/\.pdf(\?|#|$)/i.test(url)?.75:1.78,"frame");
+  else addEmbed(url,info.ar||1.6,"frame");
 });
 $("mediaFile").addEventListener("change",e=>{
   const f=e.target.files[0];if(!f)return;const note=t=>{$("addNote").textContent=t},reset=()=>{e.target.value=""};
