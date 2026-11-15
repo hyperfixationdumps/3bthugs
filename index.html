@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" style="--s: 0.9914;"><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>y2k container</title>
 <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&amp;family=VT323&amp;display=swap" rel="stylesheet">
 <style>
@@ -197,8 +197,9 @@ body{margin:0;position:fixed;inset:0;width:100%;height:100%;display:flex;align-i
 .mp-bar{flex:0 0 24%;display:flex;align-items:center;padding:0 3cqw;background:var(--tab);border-bottom:.9cqw solid #0b1a14;font-weight:700}
 .editable-item .text-content.tfx{-webkit-text-stroke:2px #000;paint-order:stroke fill;text-shadow:1px 1px 0 #000,2px 2px 0 #000,3px 3px 0 #000,4px 4px 0 #000,5px 5px 0 #000,0 0 14px #ffffff55}
 .mp-title{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mp-loop{all:unset;cursor:pointer;padding:.5cqw 2cqw;font-size:4.4cqw;line-height:1;border-radius:1.5cqw}
-.mp.looping .mp-loop{background:#fff6b8}
+.mp-row{display:flex;align-items:center;justify-content:center;gap:5cqw}
+.mp-loop{all:unset;cursor:pointer;display:grid;place-items:center;width:9cqw;height:9cqw;box-sizing:border-box;border-radius:50%;background:var(--tab2);border:.9cqw solid #0b1a14;font-size:6cqw;line-height:1;color:#0b1a14}
+[data-aid].looping .mp-loop{background:#fff6b8}
 .mp-body{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;align-items:center;padding:0 6cqw}
 .mp-track{position:relative;align-self:stretch;height:1cqw;background:#0b1a14;border-radius:1cqw}
 .mp-fill{position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);background:var(--tab2);border-radius:1cqw}
@@ -228,9 +229,9 @@ body{margin:0;position:fixed;inset:0;width:100%;height:100%;display:flex;align-i
 .vp-ctl{flex:0 0 14cqw;display:flex;align-items:center;gap:3.5cqw;padding:0 4cqw;background:#eef9f1;border-top:.9cqw solid #0b1a14}
 .vp .mp-track{flex:1}
 .vp .mp-play{width:9cqw;height:9cqw}
+.vp.fv .vp-screen{background:#000}.vp.fv iframe{position:absolute;inset:0;display:block;width:100%;height:100%;border:0}
 .mp-warn{display:none;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#7a1f1f}
 [data-aid].bad .mp-title{display:none}[data-aid].bad .mp-warn{display:block}
-.vp.looping .mp-loop{background:#fff6b8}
 /* controls: always pressable */
 .sig{position:relative;z-index:30}
 .sig.ed .sg{display:none}
@@ -255,8 +256,8 @@ body{margin:0;position:fixed;inset:0;width:100%;height:100%;display:flex;align-i
   <section class="add-modal" id="addModal" role="dialog" aria-modal="true" aria-labelledby="addTitle" hidden="">
     <div class="add-card">
       <div class="add-head"><strong id="addTitle">ADD</strong><button class="edb" id="closeAdd" aria-label="Close">✕</button></div>
-      <div class="add-tabs" id="addTabs"><button class="edb" data-tab="text">Text</button><button class="edb on" data-tab="media">Media / file</button></div>
-      <div id="secText" class="add-sec" hidden="">
+      <div class="add-tabs" id="addTabs"><button class="edb on" data-tab="text">Text</button><button class="edb" data-tab="media">Media / file</button></div>
+      <div id="secText" class="add-sec">
         <textarea id="contentText" placeholder="Write something for your page…"></textarea>
         <div class="text-settings">
           <label>Font
@@ -267,9 +268,10 @@ body{margin:0;position:fixed;inset:0;width:100%;height:100%;display:flex;align-i
         </div>
         <button class="edb" id="saveText">＋ add text</button>
       </div>
-      <div id="secMedia" class="add-sec">
+      <div id="secMedia" class="add-sec" hidden="">
         <label class="lbl">Paste any link – an mp3 from anywhere, Drive, YouTube, image, GIF, video, PDF, any website<input id="mediaUrl" type="text" placeholder="https://…"></label>
         <label class="lbl">Name shown on the player (optional – otherwise the file name)<input id="mediaName" type="text" placeholder="e.g. my favourite song"></label>
+        <label class="lbl">Google Drive API key (optional, free) – lets Drive mp3/video play in the custom players<input id="driveKey" type="text" placeholder="AIza…"></label>
         <label class="lbl" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="asMusic"> it’s music – show it as a music player</label>
         <button class="edb" id="saveMedia">＋ add from link</button>
         <label class="lbl">…or upload from this device (stored inside the HTML, max 8 MB)<input id="mediaFile" type="file" accept="image/*,audio/*,video/*,application/pdf"></label>
@@ -281,7 +283,7 @@ body{margin:0;position:fixed;inset:0;width:100%;height:100%;display:flex;align-i
 <script>
 (function(){var r=document.documentElement;function f(){var w=window.innerWidth,h=window.innerHeight,s=Math.min(1,w*.96/780,h*.88/624);r.style.setProperty("--s",s.toFixed(4))}f();addEventListener("resize",f);addEventListener("orientationchange",f)})();
 </script>
-<script id="site-data" type="application/json">{"rev":1794726358797,"pageExtra":{"home":0},"items":[{"id":"m1794725869565h8wwu","page":"home","kind":"embed","src":"https://i.ibb.co/YFbF50qY/thugs.png","ar":3.5815,"w":100,"x":0,"y":0,"lock":false,"h":13.760130996858562},{"id":"title","page":"home","kind":"text","text":"hafsa’s unhinged archive\non 3 bahadur thugs","fontSize":28,"color":"#ffffff","font":"pixel","align":"center","fx":true,"x":6,"y":2.001,"w":88},{"id":"m17947257620194ln0c","page":"home","kind":"embed","src":"https://i.ibb.co/zVVPXpBW/Screenshot-20250921-010139.jpg","ar":0.4611,"w":45.15014232503776,"x":27.034351021403292,"y":45.24275183179969,"lock":false,"h":25.404525514236546},{"id":"t1794725826516e7juh","page":"home","kind":"text","text":"tony YOU CHUD XD","fontSize":54,"color":"#ffffff","font":"basic","align":"center","x":3.4190516404803013,"y":46.29063212077575,"w":34},{"id":"m17947259878187peia","page":"home","kind":"embed","src":"https://drive.google.com/uc?export=download&id=1mZLQzwWZzi5TZrPjbu3IDvkYxM3WYYfa","asAudio":true,"ar":3,"w":42,"x":50.649640818794,"y":21.406972308744177},{"id":"m179472609938152dhv","page":"home","kind":"embed","src":"https://drive.google.com/file/d/15R51qQZZdikx_H1OxhrpSqHDsONh-dth/view?usp=drive_link","ar":1.6,"w":42.21198083370214,"x":3.5446629979627335,"y":19.917244537340704,"h":22.576049813913862},{"id":"m1794726353228p3uii","page":"home","kind":"embed","src":"https://drive.google.com/uc?export=download&id=1_GjT_y7_-H7Tm-1s1qQZuxsXZA7wl1Xy","asAudio":true,"ar":3,"w":42,"x":54.41802946092823,"y":33.73866335089156}]}</script>
+<script id="site-data" type="application/json">{"rev":1794759143910,"pageExtra":{"home":200},"driveKey":"","items":[{"id":"title","page":"home","kind":"text","text":"hafsa’s unhinged archive\non 3 bahadur thugs","fontSize":28,"color":"#ffffff","font":"pixel","align":"center","fx":true,"x":6,"y":1.66,"w":88},{"id":"m179475770369143din","page":"home","kind":"embed","src":"https://mega.nz/embed/V3AEWLxT#oSGyCRVhOwVUDxjcRhQd25n5ldCqaahX66Ko50t8KtM!1v1c\" allowfullscreen >\u003c/iframe>","win":true,"ar":1.5392,"w":50,"x":50,"y":10.003},{"id":"m1794757845604nuxwt","page":"home","kind":"embed","src":"https://i.ibb.co/wF8X1ykS/image.png","ar":1.3947,"w":24.926407097333993,"x":2.261033185280538,"y":24.974,"lock":false,"h":16.224},{"id":"m17947581393377dow6","page":"home","kind":"embed","src":"https://i.ibb.co/60ZQDbqm/1-ezgif-com-video-to-gif-converter.gif","ar":0.7168,"w":29.071648978980058,"x":16.608435846780786,"y":44.65458323618824},{"id":"t1794758011107tbpr1","page":"home","kind":"text","text":"hi ooooooooooooooooooooooooo","fontSize":24,"color":"#d6f5de","font":"pixel","x":37.46023744542896,"y":43.383360190483835,"w":34},{"id":"m1794757969841z6yg0","page":"home","kind":"embed","src":"https://player.vimeo.com/video/1236943935?title=0&amp;byline=0&amp;portrait=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479\" width=\"1080\" height=\"1080\" frameborder=\"0\" allow=\"autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" title=\"reel fast\">\u003c/iframe>","win":true,"ar":0.9259,"w":37.43867258111166,"x":54.29242768697807,"y":41.77019869388713},{"id":"t17947584311443exlv","page":"home","kind":"text","text":"hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii","fontSize":24,"color":"#d6f5de","font":"pixel","fx":true,"align":"center","x":5.177639395831125,"y":14.470883344755533,"w":34},{"id":"t1794758458256rt0tz","page":"home","kind":"text","text":"freaaaaaaaaaaaaaaaksssssssssssssss","fontSize":24,"color":"#d6f5de","font":"basic","x":9.448483051427338,"y":79.91884658332644,"w":20.18253983922283}]}</script>
 <script>
 const pages=["home","folder 1","folder 2","folder 3","folder 4"];
 const icons={
@@ -321,7 +323,7 @@ const SD=(()=>{try{return JSON.parse($("site-data").textContent)||{}}catch(e){re
 const PUB={items:Array.isArray(SD.items)?SD.items:[]};
 let mediaItems=JSON.parse(JSON.stringify(PUB.items));
 let selectedItem=null,editingTextId=null;
-let editOpen=false,hist=[],fut=[],touched=false,pageExtra=(SD.pageExtra&&typeof SD.pageExtra==="object")?{...SD.pageExtra}:{};
+let editOpen=false,hist=[],fut=[],touched=false,driveKey=String(SD.driveKey||""),pageExtra=(SD.pageExtra&&typeof SD.pageExtra==="object")?{...SD.pageExtra}:{};
 function tb(){
   document.querySelectorAll(".editable-item").forEach(el=>el.classList.toggle("selected",el.dataset.id===selectedItem));
   const inn=document.querySelector(".inner,.body");
@@ -330,7 +332,7 @@ function tb(){
   renderDock();
 }
 function renderDock(){
-  const it=mediaItems.find(x=>x.id===selectedItem),pl=it&&isPlayer(it),B=(a,l,c="",d=false,t="")=>`<button class="edb ${c}" data-act="${a}"${d?" disabled":""}${t?` title="${t}"`:""}>${l}</button>`;
+  const it=mediaItems.find(x=>x.id===selectedItem),pl=it&&(isPlayer(it)||isWin(it)),B=(a,l,c="",d=false,t="")=>`<button class="edb ${c}" data-act="${a}"${d?" disabled":""}${t?` title="${t}"`:""}>${l}</button>`;
   const xp=B("export","↓ export","",false,"export HTML: save the latest index.html")+B("copy","⧉ copy","",false,"copy the whole HTML (backup if download is blocked)");
   $("dock").innerHTML=editOpen
     ?B("done","✓ done","on")+B("add","＋ add")+B("pgdn","＋page","",false,"make the page longer (scroll further down)")+B("pgup","－page","",false,"make the page shorter")+B("move","✥ move",editing?"on":"",false,"drag, resize, delete")+B("undo","↶","",!hist.length,"undo")+B("redo","↷","",!fut.length,"redo")+((it&&(it.kind==="text"||pl))?B("edit",pl?"✎ name":"✎ text"):"")+(it?B("front","▲","",false,"bring forward")+B("back","▼","",false,"send backward")+B("del","✕","",false,"delete selected"):"")+xp
@@ -354,9 +356,9 @@ function mediaTag(type){
   return "file";
 }
 function embedInfo(u){
-  let s=String(u||"").trim(),m;const F=(src,ar)=>({t:"frame",src,ar});
+  let s=String(u||"").trim(),m;const F=(src,ar,v)=>({t:"frame",src,ar,v});
   if(/^data:image\//i.test(s))return{t:"img",src:s};
-  if(m=s.match(/drive\.google\.com\/file\/d\/([\w-]+)/i)||s.match(/drive\.google\.com\/(?:open|uc)\?(?:[^#]*&)?id=([\w-]+)/i))return F("https://drive.google.com/file/d/"+m[1]+"/preview",1.6);
+  if(m=s.match(/drive\.google\.com\/file\/d\/([\w-]+)/i)||s.match(/drive\.google\.com\/(?:open|uc)\?(?:[^#]*&)?id=([\w-]+)/i))return F("https://drive.google.com/file/d/"+m[1]+"/preview",1.78,true);
   if(m=s.match(/drive\.google\.com\/drive\/(?:u\/\d+\/)?folders\/([\w-]+)/i))return F("https://drive.google.com/embeddedfolderview?id="+m[1]+"#grid",1.2);
   if(m=s.match(/docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([\w-]+)/i))return F("https://docs.google.com/"+m[1]+"/d/"+m[2]+(m[1]==="presentation"?"/embed":"/preview"),m[1]==="document"?.75:1.6);
   if(/^https?:\/\/(www\.)?dropbox\.com\//i.test(s)){s=s.replace(/([?&])dl=0/,"$1raw=1");if(!/[?&]raw=1/.test(s))s+=(s.includes("?")?"&":"?")+"raw=1"}
@@ -365,26 +367,38 @@ function embedInfo(u){
   if(/\.(png|jpe?g|gif|webp|avif|bmp|svg)(\?|#|$)/i.test(s)||/^https?:\/\/i\.ibb\.co\//i.test(s))return{t:"img",src:s};
   if(/^data:audio\//i.test(s)||/\.(mp3|wav|ogg|oga|m4a|aac|flac|opus)(\?|#|$)/i.test(s))return{t:"audio",src:s};
   if(/^data:video\//i.test(s)||/\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(s))return{t:"video",src:s};
-  if(m=s.match(/youtube\.com\/playlist\?(?:.*&)?list=([\w-]+)/i))return F("https://www.youtube.com/embed/videoseries?list="+m[1],1.78);
-  if(m=s.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|live\/|embed\/)|youtu\.be\/)([\w-]{11})/i))return F("https://www.youtube.com/embed/"+m[1],/shorts\//i.test(s)?.56:1.78);
-  if(m=s.match(/vimeo\.com\/(?:video\/)?(\d+)/i))return F("https://player.vimeo.com/video/"+m[1],1.78);
+  if(m=s.match(/^https?:\/\/mega\.(?:nz|io|co\.nz)\/(?:file|embed)\/([\w-]+)#([\w-]+)/i))return F("https://mega.nz/embed/"+m[1]+"#"+m[2],1.78,true);
+  if(m=s.match(/^https?:\/\/mega\.(?:nz|io|co\.nz)\/(?:embed)?#!([\w-]+)!([\w-]+)/i))return F("https://mega.nz/embed#!"+m[1]+"!"+m[2],1.78,true);
+  if(m=s.match(/youtube\.com\/playlist\?(?:.*&)?list=([\w-]+)/i))return F("https://www.youtube.com/embed/videoseries?list="+m[1],1.78,true);
+  if(m=s.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|live\/|embed\/)|youtu\.be\/)([\w-]{11})/i))return F("https://www.youtube.com/embed/"+m[1],/shorts\//i.test(s)?.56:1.78,true);
+  if(m=s.match(/vimeo\.com\/(?:video\/)?(\d+)/i))return F("https://player.vimeo.com/video/"+m[1],1.78,true);
   if(m=s.match(/open\.spotify\.com\/(track|album|playlist|episode|show)\/(\w+)/i))return F("https://open.spotify.com/embed/"+m[1]+"/"+m[2],m[1]==="track"?2.3:1.1);
   if(/soundcloud\.com\//i.test(s)&&!/w\.soundcloud\.com/i.test(s))return F("https://w.soundcloud.com/player/?url="+encodeURIComponent(s),2.6);
-  if(m=s.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/i))return F("https://www.tiktok.com/embed/v2/"+m[1],.56);
+  if(m=s.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/i))return F("https://www.tiktok.com/embed/v2/"+m[1],.56,true);
   if(m=s.match(/instagram\.com\/(p|reel|tv)\/([\w-]+)/i))return F("https://www.instagram.com/"+(m[1]==="reel"?"reel":"p")+"/"+m[2]+"/embed",.8);
   return F(s,/\.pdf(\?|#|$)/i.test(s)?.75:1.6);
 }
 const gdId=u=>{const m=String(u).match(/drive\.google\.com\/file\/d\/([\w-]+)/i)||String(u).match(/drive\.google\.com\/(?:open|uc)\?(?:[^#]*&)?id=([\w-]+)/i);return m?m[1]:null};
+function fetchT(u,ms){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(u,{signal:c.signal}).finally(()=>clearTimeout(t))}
+async function oembedRatio(u){try{const ep=/vimeo\.com/i.test(u)?"https://vimeo.com/api/oembed.json?url=":/youtu/i.test(u)?"https://www.youtube.com/oembed?format=json&url=":null;if(!ep)return null;const r=await fetchT(ep+encodeURIComponent(u),6000);if(!r.ok)return null;const j=await r.json();return j.width&&j.height?j.width/j.height:null}catch(e){return null}}
+async function resolveIbb(u){for(const px of ["https://api.allorigins.win/raw?url=","https://corsproxy.io/?"]){try{const r=await fetchT(px+encodeURIComponent(u),7000);if(!r.ok)continue;const h=await r.text(),m=h.match(/property="og:image"\s+content="([^"]+)"/i)||h.match(/content="([^"]+)"\s+property="og:image"/i);if(m)return m[1].replace(/&amp;/g,"&")}catch(e){}}return null}
+const gdApi=id=>"https://www.googleapis.com/drive/v3/files/"+id+"?alt=media&key="+encodeURIComponent(driveKey);
+async function gdMeta(id){try{const r=await fetch("https://www.googleapis.com/drive/v3/files/"+id+"?fields=name,mimeType&key="+encodeURIComponent(driveKey));return r.ok?await r.json():null}catch(e){return null}}
+const gdTitle=m=>String(m.name||"").replace(/\.[^.]+$/,"");
 const driveDirect=id=>"https://drive.google.com/uc?export=download&id="+id;
 const driveAlt=id=>"https://drive.usercontent.google.com/download?id="+id+"&export=download&confirm=t";
 const gdFromDirect=u=>{const m=String(u).match(/(?:drive\.google\.com\/uc\?export=download&id=|drive\.usercontent\.google\.com\/download\?id=)([\w-]+)/i);return m&&m[1]};
 const isAud=i=>i.kind==="embed"&&(!!i.asAudio||(!i.asVideo&&embedInfo(i.src).t==="audio"));
 const isVid=i=>i.kind==="embed"&&(!!i.asVideo||(!i.asAudio&&embedInfo(i.src).t==="video"));
+const isWin=i=>i.kind==="embed"&&!isAud(i)&&!isVid(i)&&!!embedInfo(i.src).v;
 const isPlayer=i=>isAud(i)||isVid(i);
+const fvAr=r=>+(100/(98.2/(r>0?r:1.78)+9.8)).toFixed(4);
+function normalizeFrames(){mediaItems.forEach(i=>{if(i.kind==="embed"&&(i.asAudio||i.asVideo)&&!gdFromDirect(i.src)&&!/googleapis\.com/.test(i.src)&&embedInfo(i.src).v){delete i.asAudio;delete i.asVideo;delete i.loop;delete i.h;i.win=true;i.ar=fvAr(embedInfo(i.src).ar||1.78)}if(isWin(i)&&!i.win){i.win=true;i.ar=fvAr(embedInfo(i.src).ar||1.78);delete i.h}})}
 const vpAr=r=>+(100/(98.2/(r>0?r:1.78)+23.8)).toFixed(4);
-const chipOK=i=>i.kind!=="text"&&!isPlayer(i)&&(i.kind!=="embed"||embedInfo(i.src).t==="img");
-function rmode(i){if(i.kind==="text")return"text";if(isPlayer(i))return"ratio";if(!chipOK(i))return"free";return i.lock===false?"free":"ratio"}
-function srcList(i){const base=(i.asAudio||i.asVideo)?i.src:embedInfo(i.src).src,id=gdFromDirect(base);return id?[base,...[driveAlt(id),driveDirect(id)].filter(u=>u!==base)]:[base]}
+const chipOK=i=>i.kind!=="text"&&!isPlayer(i)&&!isWin(i)&&(i.kind!=="embed"||!!i.asImg||embedInfo(i.src).t==="img");
+function rmode(i){if(i.kind==="text")return"text";if(isPlayer(i)||isWin(i))return"ratio";if(!chipOK(i))return"free";return i.lock===false?"free":"ratio"}
+function srcList(i){const base=(i.asAudio||i.asVideo)?i.src:embedInfo(i.src).src,id=gdFromDirect(base);return id?[base,...[driveAlt(id),driveDirect(id)+"&confirm=t","https://docs.google.com/uc?export=download&id="+id].filter(u=>u!==base)]:[base]}
+function driveRatio(id){return new Promise(res=>{const im=new Image(),t=setTimeout(()=>res(1.78),5000);im.onload=()=>{clearTimeout(t);res(im.naturalWidth&&im.naturalHeight?im.naturalWidth/im.naturalHeight:1.78)};im.onerror=()=>{clearTimeout(t);res(1.78)};im.src="https://drive.google.com/thumbnail?id="+id+"&sz=w600"})}
 function probeMedia(u){return new Promise(res=>{const v=document.createElement("video");v.preload="metadata";let done=false;const f=r=>{if(!done){done=true;clearTimeout(t);v.removeAttribute("src");try{v.load()}catch(e){}res(r)}};
   v.onloadedmetadata=()=>f(isFinite(v.duration)?(v.videoWidth===0?{t:"audio",url:u}:{t:"video",url:u,w:v.videoWidth,h:v.videoHeight}):null);v.onerror=()=>f(null);const t=setTimeout(()=>f(null),7000);v.src=u})}
 async function probeChain(list){for(const u of list){const r=await probeMedia(u);if(r)return r}return null}
@@ -392,7 +406,10 @@ const AUDS=new Map();
 function getAud(i){let m=AUDS.get(i.id);if(m)return m;const v=isVid(i);m=document.createElement(v?"video":"audio");m.preload="metadata";m.loop=!!i.loop;
   if(v){m.playsInline=true;m.setAttribute("playsinline","")}
   const L=srcList(i);let k=0;m.src=L[0];
-  m.addEventListener("error",()=>{if(k<L.length-1){k++;m.src=L[k];m.load()}else{m.dataset.err="1";mpSync()}});
+  m.addEventListener("error",()=>{
+    if(k<L.length-1){k++;m.src=L[k];m.load();return}
+    m.dataset.err="1";mpSync()});
+  m.addEventListener("ended",()=>{const it=mediaItems.find(x=>x.id===i.id);if(it&&it.loop){m.currentTime=0;m.play().catch(()=>{})}});
   ["timeupdate","play","pause","loadedmetadata","durationchange","ended","volumechange"].forEach(e=>m.addEventListener(e,mpSync));
   AUDS.set(i.id,m);return m}
 function mpSync(){document.querySelectorAll("[data-aid]").forEach(m=>{const a=AUDS.get(m.dataset.aid),it=mediaItems.find(x=>x.id===m.dataset.aid),d=a&&isFinite(a.duration)?a.duration:0;
@@ -400,9 +417,10 @@ function mpSync(){document.querySelectorAll("[data-aid]").forEach(m=>{const a=AU
 const mpTitle=i=>i.title||((i.asAudio||i.asVideo)?(i.asVideo?"video":"music"):(/^data:/i.test(i.src||"")?(isVid(i)?"video":"music"):decodeURIComponent(String(i.src||"").split(/[?#]/)[0].split("/").pop()||"music").replace(/\.[a-z0-9]+$/i,"").slice(0,40)||"music"));
 const STAR='<svg class="mp-star" viewBox="0 0 24 24"><path d="M12 2l3 7 7 .6-5.3 4.7 1.7 7.2L12 17.8 5.6 21.5l1.7-7.2L2 9.6 9 9z" fill="#fff6b8" stroke="#0b1a14" stroke-width="2" stroke-linejoin="round"/></svg>';
 const PLAYBTN='<button class="mp-play" type="button" aria-label="play / pause"><svg class="ic-play" viewBox="0 0 24 24"><path d="M9 6l9 6-9 6z" fill="#0b1a14"/></svg><svg class="ic-pause" viewBox="0 0 24 24"><path d="M8 6h3v12H8zM13 6h3v12h-3z" fill="#0b1a14"/></svg></button>';
-const BAR=(i,ic)=>`<div class="mp-bar"><span class="mp-title">${ic} ${escAttr(mpTitle(i))}</span><span class="mp-warn">⚠ couldn’t load this file</span><button class="mp-loop" type="button" title="loop">↻</button></div>`;
-const mpHTML=i=>`<div class="mp" data-aid="${escAttr(i.id)}">${BAR(i,"♪")}<div class="mp-body"><div class="mp-track"><i class="mp-fill"></i>${STAR}</div>${PLAYBTN}</div></div>`;
-const vpHTML=i=>`<div class="vp" data-aid="${escAttr(i.id)}">${BAR(i,"▶")}<div class="vp-screen"></div><div class="vp-ctl">${PLAYBTN}<div class="mp-track"><i class="mp-fill"></i>${STAR}</div></div></div>`;
+const LOOPBTN='<button class="mp-loop" type="button" title="loop" aria-label="loop">↻</button>';
+const BAR=(i,ic)=>`<div class="mp-bar"><span class="mp-title">${ic} ${escAttr(mpTitle(i))}</span><span class="mp-warn">⚠ blocked by the host – see tips</span></div>`;
+const mpHTML=i=>`<div class="mp" data-aid="${escAttr(i.id)}">${BAR(i,"♪")}<div class="mp-body"><div class="mp-track"><i class="mp-fill"></i>${STAR}</div><div class="mp-row">${PLAYBTN}${LOOPBTN}</div></div></div>`;
+const vpHTML=i=>`<div class="vp" data-aid="${escAttr(i.id)}">${BAR(i,"▶")}<div class="vp-screen"></div><div class="vp-ctl">${PLAYBTN}${LOOPBTN}<div class="mp-track"><i class="mp-fill"></i>${STAR}</div></div></div>`;
 document.addEventListener("click",e=>{
   if(editing)return;
   const lp=e.target.closest(".mp-loop");
@@ -431,16 +449,24 @@ function resizePage(d){
 function moveZ(d){const i=mediaItems.findIndex(x=>x.id===selectedItem);if(i<0)return;const pg=mediaItems[i].page;let j=i+d;while(j>=0&&j<mediaItems.length&&mediaItems[j].page!==pg)j+=d;if(j<0||j>=mediaItems.length)return;snap();[mediaItems[i],mediaItems[j]]=[mediaItems[j],mediaItems[i]];changed();refreshMedia()}
 const driveId=u=>{const m=String(u||"").match(/drive\.google\.com\/file\/d\/([\w-]+)/i);return m&&m[1]};
 function upgradeDrive(){
-  mediaItems.forEach(i=>{if(i.kind!=="embed"||i.asAudio||i.asVideo)return;const e=embedInfo(i.src),id=e.t==="frame"&&driveId(e.src);if(!id)return;
-    probeChain([driveAlt(id),driveDirect(id)]).then(r=>{if(!r||!mediaItems.includes(i))return;i.src=r.url;delete i.h;
-      if(r.t==="audio"){i.asAudio=true;i.title=i.title||"music";i.ar=3}else{i.asVideo=true;i.title=i.title||"video";i.ar=vpAr(r.w/r.h)}refreshMedia()})});
+  mediaItems.forEach(i=>{if(i.kind!=="embed"||i.asAudio||i.asVideo||i.asImg||(i.noUpgrade&&!driveKey))return;const e=embedInfo(i.src),id=e.t==="frame"&&gdId(e.src);if(!id)return;
+    (async()=>{
+      if(driveKey){const m=await gdMeta(id);if(m&&mediaItems.includes(i)){const u=gdApi(id);
+        if(/^audio\//.test(m.mimeType||"")){i.orig=i.src;i.src=u;i.asAudio=true;i.title=i.title||gdTitle(m);i.ar=3;delete i.h;delete i.win;delete i.noUpgrade;refreshMedia();return}
+        if(/^video\//.test(m.mimeType||"")){const r=await probeMedia(u);i.orig=i.src;i.src=u;i.asVideo=true;i.title=i.title||gdTitle(m);i.ar=vpAr(r&&r.w?r.w/r.h:1.78);delete i.h;delete i.win;delete i.noUpgrade;refreshMedia();return}}}
+      const r=await probeChain([driveAlt(id),driveDirect(id)]);if(!r||!mediaItems.includes(i))return;
+      i.orig=i.src;i.src=r.url;delete i.h;delete i.win;
+      if(r.t==="audio"){i.asAudio=true;i.title=i.title||"music";i.ar=3}else{i.asVideo=true;i.title=i.title||"video";i.ar=vpAr(r.w/r.h)}refreshMedia();
+    })()});
 }
 function mediaMarkup(item){
   const src=escAttr(item.src||"");
+  if(item.kind==="embed"&&item.asImg)return `<img src="${src}" alt="" draggable="false" referrerpolicy="no-referrer">`;
   if(item.kind==="embed"){const e=embedInfo(item.src),es=escAttr(e.src);
     if(e.t==="img")return `<img src="${es}" alt="" draggable="false" referrerpolicy="no-referrer">`;
     if(isAud(item))return mpHTML(item);
     if(isVid(item))return vpHTML(item);
+    if(e.v)return `<div class="vp fv"><div class="mp-bar"><span class="mp-title">▶ ${escAttr(item.title||"video")}</span></div><div class="vp-screen"><iframe src="${es}" title="Embedded video" loading="lazy" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe></div></div>`;
     return `<iframe src="${es}" title="Embedded content" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;}
   const tag=mediaTag(item.type||"");
   if(tag==="video")return `<video src="${src}" controls playsinline preload="metadata"></video>`;
@@ -453,6 +479,7 @@ const itemStyle=i=>`left:${Number(i.x)||0}%;top:${Number(i.y)||0}%;width:${Numbe
 const fsCss=i=>`calc(var(--u)*${((Number(i.fontSize)||24)/7.8).toFixed(3)})`;
 const fontCss=i=>i.font==="basic"?'Arial, Helvetica, sans-serif':'"Pixelify Sans","VT323",monospace';
 async function renderMedia(){
+  normalizeFrames();
   const layer=activeLayer();if(!layer)return;layer.innerHTML="";
   const visible=mediaItems.filter(x=>x.page===pages[cur]);
   for(const item of visible){
@@ -464,7 +491,7 @@ async function renderMedia(){
     }else el.innerHTML=mediaMarkup(item);
     const shield=document.createElement("i");shield.className="shield";el.appendChild(shield);
     const resize=document.createElement("i");resize.className="item-resize";el.appendChild(resize);
-    if(isPlayer(item))el.classList.add("mpi");
+    if(isPlayer(item)||isWin(item))el.classList.add("mpi");
     if(chipOK(item)){if(item.lock===false)el.classList.add("stretch");const lk=document.createElement("button");lk.className="item-lock";lk.type="button";lk.textContent=item.lock===false?"↔ stretch":"🔒 ratio";lk.title="tap to switch: keep proportions / free stretch";el.appendChild(lk)}
     layer.appendChild(el);
   }
@@ -523,7 +550,7 @@ function openAdd(tab,id=null){
   editingTextId=id;const item=id?mediaItems.find(x=>x.id===id):null;
   $("contentText").value=item?.text||"";$("textSize").value=item?.fontSize||24;$("textColor").value=item?.color||"#d6f5de";$("textFont").value=item?(item.fx?"heading":(item.font||"pixel")):"pixel";
   $("addTitle").textContent=item?"EDIT TEXT":"ADD";$("saveText").textContent=item?"save text":"＋ add text";
-  $("addTabs").hidden=!!item;setTab(tab);$("addNote").textContent="";$("addModal").hidden=false;
+  $("driveKey").value=driveKey;$("asMusic").checked=false;$("addTabs").hidden=!!item;setTab(tab);$("addNote").textContent="";$("addModal").hidden=false;
 }
 function closeAddWindow(){$("addModal").hidden=true;editingTextId=null}
 $("addTabs").addEventListener("click",e=>{const b=e.target.closest("[data-tab]");if(b)setTab(b.dataset.tab)});
@@ -547,23 +574,37 @@ function addEmbed(src,ar,t,title,extra){
   ar=ar>0?ar:1.6;let w=t==="frame"?50:t==="audio"?42:40;const L=activeLayer().getBoundingClientRect();
   if(L.height>0){const hp=w/ar*L.width/L.height;if(hp>60)w=w*60/hp}
   snap();const id="m"+Date.now()+Math.random().toString(36).slice(2,7);
-  mediaItems.push({id,page:pages[cur],kind:"embed",src,...(title?{title}:{}),...(extra||{}),ar:+ar.toFixed(4),w:+w.toFixed(1),x:20,y:20});
+  mediaItems.push({id,page:pages[cur],kind:"embed",src,...(title?{title}:{}),...(extra||{}),...(t==="frame"&&embedInfo(src).v?{win:true}:{}),ar:+ar.toFixed(4),w:+w.toFixed(1),x:20,y:20});
   selectedItem=id;editing=true;editOpen=true;$("mediaUrl").value="";$("mediaName").value="";$("asMusic").checked=false;$("addNote").textContent="";closeAddWindow();changed();refreshMedia();
 }
 $("saveMedia").addEventListener("click",async()=>{
   let url=$("mediaUrl").value.trim();if(!/^https?:\/\//i.test(url)&&/^[\w-]+(\.[\w-]+)+\/\S*/.test(url))url="https://"+url;
   if(!/^https?:\/\//i.test(url)&&!/^[\w][\w .()-]*\.(mp3|wav|ogg|m4a|aac|flac|opus|mp4|webm|mov|png|jpe?g|gif|webp|pdf)$/i.test(url)){$("addNote").textContent="Paste a full link starting with https:// (or a file name next to index.html, like song.mp3)";return}
-  const info=embedInfo(url),did=gdId(url),music=$("asMusic").checked,note=t=>{$("addNote").textContent=t},nm=$("mediaName").value.trim()||undefined;
-  const aud=(u)=>addEmbed(u,3,"audio",nm,{asAudio:true}),vid=(u,w,h)=>addEmbed(u,vpAr(w/h),"video",nm,{asVideo:true});
-  if(music){aud(did?driveDirect(did):info.src);return}
+  {const k=$("driveKey").value.trim();if(k!==driveKey){driveKey=k;changed()}}
+  if(/^https?:\/\/(?:www\.)?ibb\.co\/[A-Za-z0-9]+\/?$/i.test(url)){$("addNote").textContent="Finding the picture on ImgBB…";$("saveMedia").disabled=true;const d=await resolveIbb(url);$("saveMedia").disabled=false;
+    if(!d){$("addNote").textContent="Couldn’t read that ImgBB page. On ImgBB, copy the “Direct link” (starts with i.ibb.co) and paste that instead.";return}url=d}
+  const info=embedInfo(url),did=gdId(url),music=$("asMusic").checked&&!(info.v&&!did),note=t=>{$("addNote").textContent=t},nm=$("mediaName").value.trim()||undefined;
+  const aud=(u)=>addEmbed(u,3,"audio",nm,{asAudio:true,...(did?{orig:url}:{})}),vid=(u,w,h)=>addEmbed(u,vpAr(w/h),"video",nm,{asVideo:true,...(did?{orig:url}:{})});
+  if(did&&driveKey){
+    note("Reading the file from Google Drive…");$("saveMedia").disabled=true;const m=await gdMeta(did);
+    if(!m){$("saveMedia").disabled=false;note("Drive didn’t answer. Check the API key, and that the file is shared as “Anyone with the link”.");return}
+    const u=gdApi(did),t0=nm||gdTitle(m),mt=m.mimeType||"";
+    if(/^audio\//.test(mt)){$("saveMedia").disabled=false;addEmbed(u,3,"audio",t0,{asAudio:true,orig:url});return}
+    if(/^video\//.test(mt)){const r=await probeMedia(u);$("saveMedia").disabled=false;addEmbed(u,vpAr(r&&r.w?r.w/r.h:1.78),"video",t0,{asVideo:true,orig:url});return}
+    if(/^image\//.test(mt)){const im=new Image();im.onload=()=>{$("saveMedia").disabled=false;addEmbed(u,im.naturalWidth/im.naturalHeight,"img",undefined,{asImg:true,orig:url})};im.onerror=()=>{$("saveMedia").disabled=false;note("Couldn’t load that image from Drive.")};im.src=u;return}
+    $("saveMedia").disabled=false;
+  }
+  if(music){aud(did?(driveKey?gdApi(did):driveDirect(did)):info.src);return}
   if(info.t==="audio"){addEmbed(url,3,"audio",nm);return}
   if(info.t==="video"){const v=document.createElement("video");v.preload="metadata";v.onloadedmetadata=()=>addEmbed(url,vpAr(v.videoWidth/v.videoHeight),"video",nm);v.onerror=()=>addEmbed(url,vpAr(1.78),"video",nm);v.src=info.src;return}
   if(did||(info.t==="frame"&&info.src===url)){
     note("Checking the file… this can take a few seconds");$("saveMedia").disabled=true;
     const r=await probeChain(did?[driveAlt(did),driveDirect(did)]:[url]);$("saveMedia").disabled=false;
-    if(r&&r.t==="audio")aud(r.url);else if(r&&r.t==="video")vid(r.url,r.w,r.h);else addEmbed(url,info.ar||1.6,"frame");return}
+    if(r&&r.t==="audio")aud(r.url);else if(r&&r.t==="video")vid(r.url,r.w,r.h);
+    else if(did){note("");if(confirm("Drive won’t let this page read the file’s type.\n\nOK = it’s MUSIC (use the music player)\nCancel = it’s a VIDEO (use the video window)"))aud(driveDirect(did));else{const ra=await driveRatio(did);addEmbed(url,fvAr(ra),"frame")}}
+    else addEmbed(url,info.v?fvAr(info.ar):(info.ar||1.6),"frame");return}
   if(info.t==="img"){const im=new Image();im.referrerPolicy="no-referrer";im.onload=()=>addEmbed(url,im.naturalWidth/im.naturalHeight,"img");im.onerror=()=>note("Couldn’t load that image link. Use the direct image address.");im.src=info.src}
-  else addEmbed(url,info.ar||1.6,"frame");
+  else addEmbed(url,info.v?fvAr((await oembedRatio(url))||info.ar):(info.ar||1.6),"frame");
 });
 $("mediaFile").addEventListener("change",e=>{
   const f=e.target.files[0];if(!f)return;const note=t=>{$("addNote").textContent=t},reset=()=>{e.target.value=""};
@@ -589,7 +630,7 @@ async function buildDoc(rev){
   html.querySelectorAll(".editing,.selected").forEach(el=>el.classList.remove("editing","selected"));
   html.querySelector("#stage").innerHTML="";html.querySelector("#tabs").innerHTML="";
   html.querySelectorAll(".spark").forEach(x=>x.remove());
-  html.querySelector("#site-data").textContent=JSON.stringify({rev,pageExtra,items:mediaItems}).replace(/</g,"\\u003c");
+  html.querySelector("#site-data").textContent=JSON.stringify({rev,pageExtra,driveKey,items:mediaItems}).replace(/</g,"\\u003c");
   return "<!DOCTYPE html>\n"+html.outerHTML;
 }
 async function exportFile(){
